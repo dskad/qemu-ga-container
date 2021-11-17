@@ -1,5 +1,7 @@
-FROM alpine
+FROM alpine:3.14
+LABEL maintainer="dskadra@gmail.com"
 
-RUN apk add qemu-guest-agent
+RUN apk add --update --no-cache qemu-guest-agent
 
-CMD ["/usr/bin/qemu-ga", "-m", "virtio-serial", "-p", "/dev/virtio-ports/org.qemu.guest_agent.0"]
+ENTRYPOINT [ "/usr/bin/qemu-ga" ]
+CMD ["-m", "virtio-serial", "-p", "/dev/virtio-ports/org.qemu.guest_agent.0"]
