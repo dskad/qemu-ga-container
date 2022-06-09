@@ -9,7 +9,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  DOCKER_HUB_TAG: danskadra/qemu-ga
+  DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
 
 jobs:
   build:
@@ -48,10 +48,21 @@ jobs:
           qemu-ga --version |
           grep -Po --color=never '\d+\.*\d*\.*\d*$')" >> $GITHUB_ENV
 
+      - name: Docker meta tags
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_HUB_TAG }}
+          tags: |
+            type=raw,value=${{ env.QEMU_GA_VERSION }}
+          flavor: |
+            latest=enable
+
       # Build and push image using qemu-ga version as tag
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_HUB_TAG }}:latest,${{ env.QEMU_GA_VERSION }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
