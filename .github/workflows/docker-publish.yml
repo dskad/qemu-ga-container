@@ -46,7 +46,7 @@ jobs:
           docker run --rm
           ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:getversion
           qemu-ga --version |
-          grep -Po --color=never '\d+\.*\d*\.*\d*$')"
+          grep -Po --color=never '\d+\.*\d*\.*\d*$')" >> $GITHUB_ENV
 
       # Build and push image using qemu-ga version as tag
       - name: Build and push
