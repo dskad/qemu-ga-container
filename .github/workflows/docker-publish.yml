@@ -56,7 +56,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.QEMU_GA_VERSION }}
           flavor: |
-            latest=enable
+            latest=true
 
       # Build and push image using qemu-ga version as tag
       - name: Build and push
