@@ -9,7 +9,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  IMAGE_NAME: qemu-ga
+  DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
 
 jobs:
   build:
@@ -37,14 +37,14 @@ jobs:
         with:
           context: .
           load: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:getversion
+          tags: ${{ env.DOCKER_HUB_TAG }}:getversion
 
       # Get version of qemu-ga in built container
       - name: Get qemu-ga version
         run: >
           echo "QEMU_GA_VERSION=$(
           docker run --rm
-          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:getversion
+          ${{ env.DOCKER_HUB_TAG }}:getversion
           qemu-ga --version |
           grep -Po --color=never '\d+\.*\d*\.*\d*$')" >> $GITHUB_ENV
 
@@ -54,4 +54,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest,${{ env.QEMU_GA_VERSION }}
+          tags: ${{ env.DOCKER_HUB_TAG }}:latest,${{ env.QEMU_GA_VERSION }}
