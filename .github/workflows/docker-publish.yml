@@ -32,19 +32,19 @@ jobs:
 
       # Build and to Docker
       # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
+      - name: Build docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           load: true
-          tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:getversion
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:getversion
 
       # Get version of qemu-ga in built container
       - name: Get qemu-ga version
         run: >
           echo "QEMU_GA_VERSION=$(
           docker run --rm
-          ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:getversion
+          ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:getversion
           qemu-ga --version |
           grep -Po --color=never '\d+\.*\d*\.*\d*$')"
 
@@ -54,4 +54,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:latest,${{ env.QEMU_GA_VERSION }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest,${{ env.QEMU_GA_VERSION }}
