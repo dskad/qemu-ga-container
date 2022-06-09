@@ -9,7 +9,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
+  DOCKER_HUB_TAG: danskadra/qemu-ga
 
 jobs:
   build:
