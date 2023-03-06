@@ -5,8 +5,8 @@ on:
 
   push:
     branches: [ master ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    paths:
+      - 'Dockerfile'
 
 env:
   DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
