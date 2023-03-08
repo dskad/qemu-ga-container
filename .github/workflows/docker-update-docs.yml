@@ -1,0 +1,26 @@
+name: Update Docker Hub Description
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches: [ master ]
+    paths:
+      - 'Readme.md'
+
+env:
+  DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          repository: ${{ env.DOCKER_HUB_TAG }}
