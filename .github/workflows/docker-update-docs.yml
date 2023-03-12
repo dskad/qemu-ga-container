@@ -6,7 +6,7 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'Readme.md'
+      - 'README.md'
 
 env:
   DOCKER_HUB_TAG: ${{ secrets.DOCKER_HUB_USERNAME }}/qemu-ga
