@@ -33,7 +33,7 @@ jobs:
       # Build and to Docker
       # https://github.com/docker/build-push-action
       - name: Build docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
@@ -60,7 +60,7 @@ jobs:
 
       # Build and push image using qemu-ga version as tag
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
