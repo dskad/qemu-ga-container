@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.21
 LABEL maintainer="dskadra@gmail.com"
 
 RUN apk add --update --no-cache qemu-guest-agent
