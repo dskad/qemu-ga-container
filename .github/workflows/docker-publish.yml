@@ -50,10 +50,10 @@ jobs:
       - name: Get qemu-ga version
         run: >
           echo "QEMU_GA_VERSION=$(
-          docker run --rm
+          docker run --rm --entrypoint /bin/sh
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:getversion
-          qemu-ga --version |
-          grep -Po --color=never '\d+\.*\d*\.*\d*$')" >> $GITHUB_ENV
+          -c "qemu-ga --version |
+          sed -E 's/[^0-9.]*([0-9.]+)$$/\1/')" >> $GITHUB_ENV
 
       - name: Docker meta tags
         id: meta
