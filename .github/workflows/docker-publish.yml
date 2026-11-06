@@ -48,12 +48,11 @@ jobs:
 
       # Get version of qemu-ga in built container
       - name: Get qemu-ga version
-        run: >
-          echo "QEMU_GA_VERSION=$(
-          docker run --rm --entrypoint /bin/sh
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:getversion
-          -c "qemu-ga --version |
-          sed -E 's/[^0-9.]*([0-9.]+)$$/\1/')" >> $GITHUB_ENV
+        run: |
+          QEMU_GA_VERSION="$(docker run --rm --entrypoint /bin/sh \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:getversion \
+            -c 'qemu-ga --version | sed -E "s/[^0-9.]*([0-9.]+)$/\1/"')"
+          echo "QEMU_GA_VERSION=${QEMU_GA_VERSION}" >> "$GITHUB_ENV"
 
       - name: Docker meta tags
         id: meta
