@@ -1,4 +1,5 @@
 FROM alpine:3.24
+LABEL org.opencontainers.image.authors="dskadra@gmail.com, philipp@haussleiter.de (phaus)"
 LABEL maintainer="dskadra@gmail.com"
 LABEL maintainer="philipp@haussleiter.de"
 
