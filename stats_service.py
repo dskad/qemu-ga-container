@@ -129,6 +129,170 @@ def get_agent_info():
     return info
 
 
+def prom_escape_label(value):
+    """Escape a label value per the Prometheus text format rules."""
+    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def prom_escape_help(text):
+    """Escape HELP text per the Prometheus text format rules."""
+    return str(text).replace("\\", "\\\\").replace("\n", "\\n")
+
+
+def prom_metric(name, value, help_text="", metric_type="gauge", labels=None):
+    """Render one metric family in the Prometheus text format (0.0.4).
+
+    labels is a dict of label name -> value; rendering order is the dict
+    insertion order.
+    """
+    lines = []
+    if help_text:
+        lines.append(f"# HELP {name} {prom_escape_help(help_text)}")
+    lines.append(f"# TYPE {name} {metric_type}")
+    label_str = ""
+    if labels:
+        pairs = [f'{key}="{prom_escape_label(val)}"' for key, val in labels.items()]
+        label_str = "{" + ",".join(pairs) + "}"
+    lines.append(f"{name}{label_str} {value}")
+    return "\n".join(lines) + "\n"
+
+
+def get_metrics():
+    """Collect all metrics for the /metrics endpoint."""
+    mem = get_memory()
+    disk = get_disk_stats()
+    load = get_loadavg()
+    agent = get_agent_info()
+
+    metrics = []
+
+    # Scrape state, always 1 if this endpoint responds.
+    metrics.append(prom_metric("up", 1, "Whether scraping this target was successful."))
+
+    # OS / release info as labels.
+    os_release = ""
+    try:
+        with open("/etc/os-release", "r") as f:
+            for line in f:
+                if line.startswith("PRETTY_NAME="):
+                    os_release = line.split("=")[1].strip().strip('"')
+                    break
+    except Exception:
+        pass
+    metrics.append(
+        prom_metric(
+            "qemu_ga_os_info",
+            1,
+            "OS information of the VM as labels.",
+            labels={"os": platform.system(), "release": os_release},
+        )
+    )
+
+    metrics.append(
+        prom_metric(
+            "qemu_ga_agent_running",
+            1 if agent["running"] else 0,
+            "Whether the QEMU Guest Agent process is running.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_agent_pid",
+            agent["pid"] or 0,
+            "Process ID of the QEMU Guest Agent, 0 if not running.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_agent_mock_mode",
+            1 if agent["mock_mode"] else 0,
+            "Whether the agent runs in mock mode (no VirtIO device present).",
+        )
+    )
+
+    cpu_count = get_cpu_count()
+    metrics.append(
+        prom_metric(
+            "qemu_ga_cpu_count",
+            cpu_count,
+            "Number of CPUs of the host VM.",
+        )
+    )
+
+    metrics.append(prom_metric("qemu_ga_load1", load["1min"], "1 minute load average."))
+    metrics.append(prom_metric("qemu_ga_load5", load["5min"], "5 minute load average."))
+    metrics.append(prom_metric("qemu_ga_load15", load["15min"], "15 minute load average."))
+
+    metrics.append(
+        prom_metric(
+            "qemu_ga_uptime_seconds",
+            get_uptime_seconds(),
+            "Uptime of the host VM in seconds.",
+        )
+    )
+
+    metrics.append(
+        prom_metric(
+            "qemu_ga_memory_total_bytes",
+            mem["total_mb"] * 1024,
+            "Total memory of the host VM in bytes.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_memory_used_bytes",
+            mem["used_mb"] * 1024,
+            "Used memory of the host VM in bytes.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_memory_free_bytes",
+            mem["free_mb"] * 1024,
+            "Free memory of the host VM in bytes.",
+        )
+    )
+
+    metrics.append(
+        prom_metric(
+            "qemu_ga_memory_used_percent",
+            mem["percent_used"],
+            "Memory usage of the host VM in percent.",
+        )
+    )
+
+    metrics.append(
+        prom_metric(
+            "qemu_ga_disk_total_bytes",
+            disk["total_gb"] * 1024**3,
+            "Total size of the container root filesystem in bytes.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_disk_used_bytes",
+            disk["used_gb"] * 1024**3,
+            "Used space of the container root filesystem in bytes.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_disk_free_bytes",
+            disk["free_gb"] * 1024**3,
+            "Free space of the container root filesystem in bytes.",
+        )
+    )
+    metrics.append(
+        prom_metric(
+            "qemu_ga_disk_used_percent",
+            disk["percent_used"],
+            "Disk usage of the container root filesystem in percent.",
+        )
+    )
+
+    return "\n".join(metrics)
+
+
 def get_stats():
     uptime_seconds = get_uptime_seconds()
     stats = {
@@ -182,6 +346,9 @@ class StatsHandler(BaseHTTPRequestHandler):
 
         elif self.path == "/api/health":
             self.send_body(200, "application/json", json.dumps({"status": "ok"}))
+
+        elif self.path == "/metrics":
+            self.send_body(200, "text/plain; version=0.0.4; charset=utf-8", get_metrics())
 
         elif self.path == "/":
             stats = get_stats()

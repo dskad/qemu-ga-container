@@ -47,6 +47,7 @@ It starts automatically with the container.
 | `/`          | HTML dashboard, auto-refreshes every 10 seconds      |
 | `/api/stats` | Full stats as JSON                                   |
 | `/api/health`| Simple health check (`{"status": "ok"}`)             |
+| `/metrics`   | Prometheus metrics (text format 0.0.4)               |
 
 ### Reported metrics
 
@@ -83,6 +84,55 @@ The service reads everything from `/proc` and `statvfs` — no additional
 mounts are required beyond the usual ones. If the VirtIO serial port is not
 available (e.g. when testing outside a VM), the entrypoint skips `qemu-ga`,
 keeps the container alive and runs the stats service in mock mode.
+
+### Prometheus Metrics
+
+The stats service exposes runtime metrics of the VM in the Prometheus text
+format (version 0.0.4) at `/metrics`. The metric names follow the style of
+exporters like the [prometheus-libvirt-exporter](https://github.com/inovex/prometheus-libvirt-exporter).
+
+Add a scrape job to your Prometheus configuration:
+
+```yaml
+scrape_configs:
+  - job_name: "qemu-ga"
+    static_configs:
+      - targets: ["my-vm:8080"]
+```
+
+Available metrics:
+
+| Name                              | Labels               | Description                                              |
+| --------------------------------- | -------------------- | -------------------------------------------------------- |
+| `up`                              |                      | Scraping this target was successful                      |
+| `qemu_ga_os_info`                 | `os`, `release`      | OS information of the host VM as labels                  |
+| `qemu_ga_agent_running`           |                      | Whether the QEMU Guest Agent process is running          |
+| `qemu_ga_agent_pid`               |                      | PID of the QEMU Guest Agent, `0` if not running          |
+| `qemu_ga_agent_mock_mode`         |                      | `1` when no VirtIO device is present (mock mode)         |
+| `qemu_ga_cpu_count`               |                      | Number of CPUs of the host VM                            |
+| `qemu_ga_load1`                   |                      | 1 minute load average                                    |
+| `qemu_ga_load5`                   |                      | 5 minute load average                                    |
+| `qemu_ga_load15`                  |                      | 15 minute load average                                   |
+| `qemu_ga_uptime_seconds`          |                      | Uptime of the host VM in seconds                         |
+| `qemu_ga_memory_total_bytes`      |                      | Total memory of the host VM                              |
+| `qemu_ga_memory_used_bytes`       |                      | Used memory of the host VM                               |
+| `qemu_ga_memory_free_bytes`       |                      | Free memory of the host VM                               |
+| `qemu_ga_memory_used_percent`     |                      | Memory usage of the host VM in percent                   |
+| `qemu_ga_disk_total_bytes`        |                      | Total size of the container root filesystem              |
+| `qemu_ga_disk_used_bytes`         |                      | Used space of the container root filesystem              |
+| `qemu_ga_disk_free_bytes`         |                      | Free space of the container root filesystem              |
+| `qemu_ga_disk_used_percent`       |                      | Disk usage of the container root filesystem in percent   |
+
+Example output:
+
+```text
+# HELP qemu_ga_load1 1 minute load average.
+# TYPE qemu_ga_load1 gauge
+qemu_ga_load1 0.5
+# HELP qemu_ga_memory_used_percent Memory usage of the host VM in percent.
+# TYPE qemu_ga_memory_used_percent gauge
+qemu_ga_memory_used_percent 9.3
+```
 
 ## Advanced Functionality
 
