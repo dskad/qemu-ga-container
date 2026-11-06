@@ -28,6 +28,60 @@ docker run --rm -d --name qemu-ga \
 This will allow the Guest Agent to retrieve the OS information, host name, and IP addresses of the
 container's Host VM.
 
+## Stats Service
+
+The image ships a lightweight stats service (plain Python 3 stdlib, no extra
+dependencies) that exposes information about the VM the container runs on.
+It starts automatically with the container.
+
+### Configuration
+
+| Env Var      | Default | Description                |
+| ------------ | ------- | -------------------------- |
+| `STATS_PORT` | `8080`  | Port of the stats service  |
+
+### Endpoints
+
+| Endpoint     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| `/`          | HTML dashboard, auto-refreshes every 10 seconds      |
+| `/api/stats` | Full stats as JSON                                   |
+| `/api/health`| Simple health check (`{"status": "ok"}`)             |
+
+### Reported metrics
+
+- Hostname, OS (`/etc/os-release`) and IP addresses (via `--uts=host`, `--net=host`)
+- CPU count and load average (1/5/15 min)
+- Uptime of the host VM
+- Memory usage (`/proc/meminfo`)
+- Disk usage of the container root filesystem
+- QEMU Guest Agent status (running pid or mock mode)
+
+### Example
+
+```bash
+$ curl http://localhost:8080/api/stats | jq
+{
+  "hostname": "my-vm",
+  "os": "Linux",
+  "os_release": "Fedora CoreOS 41",
+  "ips": ["192.168.122.42"],
+  "cpu_count": 4,
+  "loadavg": { "1min": 0.5, "5min": 0.3, "15min": 0.2 },
+  "uptime_seconds": 48994,
+  "uptime": "13h 36m",
+  "memory": { "total_mb": 5923, "used_mb": 548, "free_mb": 5229, "available_mb": 5375, "percent_used": 9.3 },
+  "disk": { "total_gb": 93.9, "used_gb": 22.0, "free_gb": 71.9, "percent_used": 23.4 },
+  "agent": { "running": true, "pid": 7, "mock_mode": false },
+  "timestamp": "2026-11-06T11:29:03Z"
+}
+```
+
+The service reads everything from `/proc` and `statvfs` — no additional
+mounts are required beyond the usual ones. If the VirtIO serial port is not
+available (e.g. when testing outside a VM), the entrypoint skips `qemu-ga`,
+keeps the container alive and runs the stats service in mock mode.
+
 ## Advanced Functionality
 
 If more functionality is required from the Guest Agent, such as reboot and shutdown of non-ACPI VMs,
@@ -132,6 +186,7 @@ dependant library it to the same directory in the container.
 | `--device [VirtIO Serial Port]:[VirtIO Serial Port]` | (**Required**) Agent communication to host VM        |
 | `--uts=host`                                         | Allows Guest Agent to read VM hostname               |
 | `--net=host`                                         | Allows Guest Agent to read network info from host VM |
+| `-e STATS_PORT=8080`                                 | Port of the stats service (default: `8080`)          |
 
 ## Security Considerations
 
