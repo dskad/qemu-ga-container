@@ -59,6 +59,8 @@ It starts automatically with the container.
 
 ### Example
 
+![Stats dashboard](docs/stats-dashboard.png)
+
 ```bash
 $ curl http://localhost:8080/api/stats | jq
 {
