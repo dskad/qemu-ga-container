@@ -22,7 +22,7 @@ docker run --rm -d --name qemu-ga \
   --device /dev/virtio-ports/org.qemu.guest_agent.0:/dev/virtio-ports/org.qemu.guest_agent.0 \
   --net=host \
   --uts=host \
-  docker.io/danskadra/qemu-ga
+  ghcr.io/phaus/qemu-ga-container
 ```
 
 This will allow the Guest Agent to retrieve the OS information, host name, and IP addresses of the
@@ -100,7 +100,7 @@ docker run --rm -d --name qemu-ga \
   --privileged \
   --uts=host \
   --net=host \
-  docker.io/danskadra/qemu-ga -v
+  ghcr.io/phaus/qemu-ga-container -v
 ```
 
 ⚠ **This is less secure, since the container is now running in privileged mode and generally has
@@ -209,6 +209,6 @@ to add specific capabilities to the container.
 ## Additional Info
 
 - [Container GitHub Repo](https://github.com/dskad/qemu-ga-container)
-- [Docker Hub Repo](https://hub.docker.com/r/danskadra/qemu-ga)
+- [GitHub Container Registry](https://github.com/phaus/qemu-ga-container/pkgs/container/qemu-ga)
 - [QEMU Guest Agent Protocol Reference](https://qemu.readthedocs.io/en/latest/interop/qemu-ga-ref.html)
 - [Docker Run Reference](https://docs.docker.com/engine/reference/run/)
