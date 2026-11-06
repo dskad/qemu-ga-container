@@ -5,10 +5,8 @@ on:
 
   push:
     branches: [ master ]
-    paths:
-      - 'Dockerfile'
-      - 'stats_service.py'
-      - 'entrypoint.sh'
+    tags:
+      - 'v*'
 
 env:
   REGISTRY: ghcr.io
@@ -38,7 +36,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and load image locally for version detection
+      # Get version of qemu-ga in built container (amd64 build for tag detection)
       - name: Build docker image
         uses: docker/build-push-action@v6
         with:
@@ -61,6 +59,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ env.QEMU_GA_VERSION }}
+            type=semver,pattern={{version}}
           flavor: |
             latest=true
 
@@ -68,7 +67,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
