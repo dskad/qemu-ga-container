@@ -260,7 +260,7 @@ to add specific capabilities to the container.
 
 ## Additional Info
 
-- [Container GitHub Repo](https://github.com/dskad/qemu-ga-container)
+- [Container GitHub Repo](https://github.com/phaus/qemu-ga-container)
 - [GitHub Container Registry](https://github.com/phaus/qemu-ga-container/pkgs/container/qemu-ga)
 - [QEMU Guest Agent Protocol Reference](https://qemu.readthedocs.io/en/latest/interop/qemu-ga-ref.html)
 - [Docker Run Reference](https://docs.docker.com/engine/reference/run/)
